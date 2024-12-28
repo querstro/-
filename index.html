@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="자료검색">
+    <meta property="og:description" content="공공데이터를 검색해보세요.">
+    <meta property="og:image" content=>
+    <title>CSV to Table</title>
+    <style>
+        body{
+            background: linear-gradient(180deg, #ffffff 0%, rgb(181, 206, 194) 100%);
+            height: 100vh;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+            background-color: #ffffff;
+            
+        }
+        th {
+            border: 2px solid rgb(90, 111, 101);
+            padding: 8px;
+            text-align: center;
+            background-color: #dbf3e2;
+        }
+        #searchInput {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1>농작물 자료 검색</h1>
+    <div>자료제공: 농촌진흥청</div>
+    <input type="text" id="searchInput" placeholder="Search here..." onkeyup="filterTable()">
+    <table id="csvTable"></table>
+
+    <script>
+        async function loadCSV() {
+            try {
+                
+                // CSV 파일 경로
+                const response = await fetch('csvFile.csv');
+                const csvText = await response.text();
+
+                // CSV 데이터를 파싱하여 HTML 테이블로 변환
+                const rows = csvText.split('\n').map(row => row.split(','));
+                const table = document.getElementById('csvTable');
+
+                // 테이블 헤더 추가
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                rows[0].forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header.trim();
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // 테이블 본문 추가
+                const tbody = document.createElement('tbody');
+                rows.slice(1).forEach(row => {
+                    const tr = document.createElement('tr');
+                    row.forEach(cell => {
+                        const td = document.createElement('td');
+                        td.textContent = cell.trim();
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+            } catch (error) {
+                console.error('Error loading CSV:', error);
+            }
+        }
+        function filterTable() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const table = document.getElementById('csvTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) { // 헤더 제외
+                const cells = rows[i].getElementsByTagName('td');
+                let rowContainsSearchTerm = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(input)) {
+                        rowContainsSearchTerm = true;
+                        break;
+                    }
+                }
+
+                rows[i].style.display = rowContainsSearchTerm ? '' : 'none';
+            }
+        }
+
+        // CSV 로드 실행
+        loadCSV();
+    </script>
+    
+</body>
+</html>
